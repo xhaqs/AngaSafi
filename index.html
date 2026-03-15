@@ -3,54 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AngaSafi | Field Engine</title>
+    <title>AngaSafi | Field Auditor</title>
     <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@300;600&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #D4AF37; --emerald: #064E3B; --leaf: #10B981; --cream: #F9FAFB; }
-        body { background: radial-gradient(circle at center, #065F46, var(--emerald)); color: var(--cream); font-family: 'Inter', sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-        .container { padding: 2rem; max-width: 450px; text-align: center; }
-        h1 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 2.5rem; margin: 0; }
-        .card { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(12px); border: 1.5px solid var(--gold); padding: 2rem; border-radius: 24px; margin-top: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
-        input { width: 80%; padding: 12px; border-radius: 12px; border: 1px solid var(--gold); background: rgba(0,0,0,0.2); color: white; font-size: 1.1rem; margin-top: 15px; text-align: center; outline: none; }
-        .result-box { margin-top: 25px; padding: 15px; background: rgba(16, 185, 129, 0.1); border-radius: 15px; border-left: 4px solid var(--leaf); }
-        .value { font-size: 2rem; font-weight: 700; color: var(--gold); display: block; }
-        .label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.8; }
+        body { background: radial-gradient(circle at center, #065F46, var(--emerald)); color: var(--cream); font-family: 'Inter', sans-serif; margin: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+        .container { padding: 2rem; width: 90%; max-width: 450px; text-align: center; }
+        h1 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 2.8rem; margin: 0; }
+        .slogan { font-size: 0.9rem; color: var(--leaf); letter-spacing: 1px; margin-top: 5px; font-weight: 600; }
+        .card { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(12px); border: 1.5px solid var(--gold); padding: 1.5rem; border-radius: 24px; margin-top: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
+        input { width: 80%; padding: 12px; border-radius: 12px; border: 1px solid var(--gold); background: rgba(0,0,0,0.2); color: white; font-size: 1.1rem; margin-top: 10px; text-align: center; }
+        .btn-log { background: var(--gold); color: var(--emerald); border: none; padding: 12px 24px; border-radius: 12px; font-weight: bold; margin-top: 15px; cursor: pointer; width: 100%; }
+        .history { margin-top: 30px; text-align: left; width: 100%; }
+        .log-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; margin-bottom: 8px; font-size: 0.8rem; border-left: 3px solid var(--gold); }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>AngaSafi</h1>
+        <p class="slogan">Ancestral Wisdom, Digitally Scaled.</p>
+        
         <div class="card">
-            <p class="label">Tree Diameter (DBH in cm)</p>
-            <input type="number" id="dbh" placeholder="Enter Diameter" oninput="calculate()">
-            
-            <div class="result-box">
-                <span class="label">Estimated Carbon (CO2e kg)</span>
-                <span id="output" class="value">0.00</span>
+            <p style="font-size: 0.8rem; opacity: 0.7;">Tree Diameter (cm)</p>
+            <input type="number" id="dbh" placeholder="0.0" oninput="calculate()">
+            <div style="margin-top: 15px;">
+                <span style="font-size: 0.7rem; text-transform: uppercase;">CO2e Sequestration</span>
+                <div id="output" style="font-size: 2.2rem; color: var(--gold); font-weight: 700;">0.00</div>
             </div>
+            <button class="btn-log" onclick="logData()">Log Field Reading</button>
         </div>
-        <p style="font-size: 0.7rem; margin-top: 20px; opacity: 0.5;">Logic: Tier 1 Allometric Biomass Protocol</p>
+
+        <div class="history" id="history">
+            <p style="color: var(--gold); font-weight: bold;">Field Records</p>
+        </div>
     </div>
 
     <script>
         function calculate() {
             const dbh = document.getElementById('dbh').value;
-            const output = document.getElementById('output');
-            
-            if (dbh > 0) {
-                // Automated Indigenous Calculation Logic
-                // Based on standard tropical allometric: Biomass = 0.11 * (DBH ^ 2.62)
-                // Carbon = Biomass * 0.5 | CO2e = Carbon * 3.66
-                const biomass = 0.11 * Math.pow(dbh, 2.62);
-                const carbon = biomass * 0.5;
-                const co2e = carbon * 3.66;
-                
-                output.innerText = co2e.toFixed(2);
-            } else {
-                output.innerText = "0.00";
-            }
+            const res = (0.11 * Math.pow(dbh, 2.62)) * 0.5 * 3.66;
+            document.getElementById('output').innerText = dbh > 0 ? res.toFixed(2) : "0.00";
         }
+
+        function logData() {
+            const dbh = document.getElementById('dbh').value;
+            const co2 = document.getElementById('output').innerText;
+            if (dbh <= 0) return;
+
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const log = {
+                    date: new Date().toLocaleTimeString(),
+                    coords: `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`,
+                    val: co2
+                };
+                saveToUI(log);
+            }, () => alert("GPS required for Audit Truth."));
+        }
+
+        function saveToUI(data) {
+            const item = document.createElement('div');
+            item.className = 'log-item';
+            item.innerHTML = `<b>${data.date}</b> | ${data.coords}<br>Result: ${data.val} kg CO2e`;
+            document.getElementById('history').prepend(item);
+        }
+
         if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }
     </script>
 </body>
