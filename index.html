@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AngaSafi | Universal Auditor</title>
+    <title>AngaSafi | Global Biome Auditor</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@300;600&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #D4AF37; --emerald: #064E3B; --leaf: #10B981; --cream: #F9FAFB; }
@@ -26,48 +26,56 @@
         <div class="slogan">Ancestral Wisdom, Digitally Scaled.</div>
         <div class="card">
             <p style="font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; margin:0;">Universal Species Search</p>
-            <input type="text" id="assetSearch" placeholder="Type any flora/fauna..." onchange="universalResolve()">
+            <input type="text" id="assetSearch" placeholder="Avocado, Puffin, Mango, etc..." oninput="smartResolve()">
             
-            <p style="font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; margin: 15px 0 0 0;">Kingdom Identity</p>
-            <div id="kingdomDisplay" class="kingdom-display">Awaiting Search...</div>
+            <p style="font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; margin: 15px 0 0 0;">Kingdom Resolved</p>
+            <div id="kingdomDisplay" class="kingdom-display">Awaiting...</div>
 
-            <p style="font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; margin: 15px 0 0 0;">Field Metric</p>
-            <input type="number" id="inputVal" placeholder="Enter Value" oninput="calculate()">
+            <p style="font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; margin: 15px 0 0 0;">Metric Value</p>
+            <input type="number" id="inputVal" placeholder="Enter measurement" oninput="calculate()">
             
             <div class="result-area">
                 <span id="output" class="value">0.00</span>
                 <span style="font-size: 0.9rem; color: var(--leaf); font-weight: 600;">kg CO2e Sequestration</span>
             </div>
-            <button class="btn-log" onclick="logData()">Commit to Global Audit</button>
+            <button class="btn-log" onclick="logData()">Commit Audit</button>
         </div>
         <div id="history" style="margin-top: 30px; width: 100%;"></div>
     </div>
 
     <script>
         let currentKingdom = "Unknown";
+        
+        // Universal Biome Lexicon (The "Global Brain" Cache)
+        const globalLexicon = {
+            "Plantae": ["avocado", "mango", "bluegum", "oak", "mugumo", "mugaa", "acacia", "neem", "moringa", "willow", "cabbage", "kelp", "moss", "pine", "apple", "tree", "flora"],
+            "Animalia": ["duck", "dove", "puffin", "sheep", "elephant", "lion", "whale", "bird", "fish", "insect", "fauna"]
+        };
 
-        async function universalResolve() {
-            const query = document.getElementById('assetSearch').value;
+        function smartResolve() {
+            const query = document.getElementById('assetSearch').value.toLowerCase();
             const kDisplay = document.getElementById('kingdomDisplay');
             if (query.length < 2) return;
 
-            kDisplay.innerText = "Consulting Global Data...";
-
-            try {
-                // Recursive lookup against GBIF & Catalog of Life datasets
-                const res = await fetch(`https://api.gbif.org/v1/species/match?name=${encodeURIComponent(query)}&limit=1`);
-                const data = await res.json();
-
-                if (data.kingdom) {
-                    currentKingdom = data.kingdom;
-                    const emoji = (data.kingdom === 'Plantae') ? '🌿' : (data.kingdom === 'Animalia' ? '🐾' : '🧬');
-                    kDisplay.innerText = `${emoji} ${data.kingdom} (${data.scientificName || data.canonicalName})`;
-                } else {
-                    kDisplay.innerText = "Unknown - Proceeding with Hybrid Inference";
-                    // Fallback to keyword heuristics for local/regional names
+            let found = false;
+            for (const [kingdom, terms] of Object.entries(globalLexicon)) {
+                if (terms.some(t => query.includes(t))) {
+                    currentKingdom = kingdom;
+                    kDisplay.innerText = (kingdom === 'Plantae' ? '🌿 ' : '🐾 ') + kingdom;
+                    found = true;
+                    break;
                 }
-            } catch (e) {
-                kDisplay.innerText = "Offline Mode Active";
+            }
+
+            if (!found) {
+                kDisplay.innerText = "Querying Global Cloud...";
+                fetch(`https://api.gbif.org/v1/species/match?name=${encodeURIComponent(query)}`)
+                    .then(r => r.json()).then(data => {
+                        if (data.kingdom) {
+                            currentKingdom = data.kingdom;
+                            kDisplay.innerText = (data.kingdom === 'Plantae' ? '🌿 ' : '🐾 ') + data.kingdom;
+                        }
+                    });
             }
             calculate();
         }
@@ -76,7 +84,6 @@
             const val = document.getElementById('inputVal').value;
             const output = document.getElementById('output');
             if (val > 0) {
-                // Universal scaling: Plants calculate carbon, Animals calculate biodiversity value
                 let res = (currentKingdom === "Plantae") 
                     ? (0.11 * Math.pow(val, 2.62)) * 0.5 * 3.66 
                     : "Biodiversity Unit";
@@ -90,7 +97,7 @@
             navigator.geolocation.getCurrentPosition((pos) => {
                 const item = document.createElement('div');
                 item.className = 'log-item';
-                item.innerHTML = `<b>${asset}</b><br>Value: ${val}<br><small>Audit ID: ${Math.random().toString(36).substr(2, 9)}</small>`;
+                item.innerHTML = `<b>${asset}</b><br>Result: ${val}<br><small>GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}</small>`;
                 document.getElementById('history').prepend(item);
             });
         }
