@@ -11,7 +11,7 @@
         body { background: radial-gradient(circle at center, #065F46, var(--emerald)); color: var(--cream); font-family: 'Inter', sans-serif; margin: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
         .container { padding: 2rem; width: 90%; max-width: 450px; text-align: center; }
         h1 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 2.8rem; margin: 0; }
-        .slogan { font-size: 1rem; color: var(--leaf); letter-spacing: 0.5px; margin: 10px 0 20px 0; font-weight: 600; font-style: italic; }
+        .slogan { font-size: 1rem; color: var(--leaf); letter-spacing: 0.5px; margin: 10px 0 20px 0; font-weight: 600; font-style: italic; display: block !important; }
         .card { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(12px); border: 1.5px solid var(--gold); padding: 1.5rem; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
         input { width: 80%; padding: 12px; border-radius: 12px; border: 1px solid var(--gold); background: rgba(0,0,0,0.2); color: white; font-size: 1.1rem; margin-top: 10px; text-align: center; }
         .btn-log { background: var(--gold); color: var(--emerald); border: none; padding: 12px 24px; border-radius: 12px; font-weight: bold; margin-top: 15px; cursor: pointer; width: 100%; text-transform: uppercase; }
@@ -43,7 +43,6 @@
     <script>
         function calculate() {
             const dbh = document.getElementById('dbh').value;
-            // Native Allometric Logic: Biomass * 0.5 * 3.66
             const res = (0.11 * Math.pow(dbh, 2.62)) * 0.5 * 3.66;
             document.getElementById('output').innerText = dbh > 0 ? res.toFixed(2) : "0.00";
         }
@@ -61,7 +60,7 @@
                 };
                 const item = document.createElement('div');
                 item.className = 'log-item';
-                item.innerHTML = `<b>${data.date}</b> • GPS: ${data.coords}<br><b>${data.val} kg CO2e</b> Captured`;
+                item.innerHTML = `<b>${log.date}</b> • GPS: ${log.coords}<br><b>${log.val} kg CO2e</b> Captured`;
                 document.getElementById('history').prepend(item);
             }, () => alert("GPS Auth Required for Audit."));
         }
