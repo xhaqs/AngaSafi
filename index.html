@@ -11,33 +11,10 @@
         .container { padding: 2rem; width: 90%; max-width: 450px; text-align: center; }
         h1 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 2.8rem; margin: 0; }
         .slogan { display: block; font-size: 0.9rem; color: var(--gold); margin: 5px 0 20px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-        
         .card { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(12px); border: 1.5px solid var(--gold); padding: 1.5rem; border-radius: 24px; box-shadow: 0 0 20px rgba(212,175,55,0.2); }
-        
-        input, .kingdom-display { width: 90%; padding: 12px; border-radius: 12px; border: 1px solid var(--gold); background: rgba(0,0,0,0.3); color: white; font-size: 1rem; margin-top: 10px; outline: none; transition: 0.3s; }
-        
-        /* Kingdom Display Styling */
-        .kingdom-display { 
-            background: rgba(212, 175, 55, 0.1); 
-            border-style: dashed; 
-            color: var(--gold); 
-            font-weight: 600; 
-            font-size: 0.85rem; 
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 40px;
-        }
-
-        .result-area { 
-            margin-top: 25px; padding: 20px; 
-            background: rgba(16, 185, 129, 0.1); 
-            border-radius: 15px; border: 2.5px solid var(--leaf);
-            box-shadow: 0 0 20px var(--leaf), inset 0 0 10px var(--leaf);
-        }
-        
+        input, .kingdom-display { width: 90%; padding: 12px; border-radius: 12px; border: 1px solid var(--gold); background: rgba(0,0,0,0.3); color: white; font-size: 1rem; margin-top: 10px; outline: none; }
+        .kingdom-display { background: rgba(212, 175, 55, 0.1); border-style: dashed; color: var(--gold); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; display: flex; align-items: center; justify-content: center; min-height: 40px; }
+        .result-area { margin-top: 25px; padding: 20px; background: rgba(16, 185, 129, 0.1); border-radius: 15px; border: 2.5px solid var(--leaf); box-shadow: 0 0 20px var(--leaf), inset 0 0 10px var(--leaf); }
         .value { font-size: 2.5rem; color: var(--gold); font-weight: 700; display: block; }
         .btn-log { background: var(--gold); color: var(--emerald); border: none; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 20px; cursor: pointer; width: 100%; text-transform: uppercase; }
         .history { margin-top: 40px; text-align: left; width: 100%; }
@@ -48,23 +25,21 @@
     <div class="container">
         <h1>AngaSafi</h1>
         <div class="slogan">Ancestral Wisdom, Digitally Scaled.</div>
-        
         <div class="card">
             <p style="font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; margin:0;">1. Search Asset Species</p>
-            <input type="text" id="assetSearch" list="assetList" placeholder="Search (e.g. Mangrove)" oninput="classifyAndCalc()">
+            <input type="text" id="assetSearch" list="assetList" placeholder="Try 'Moringa' or 'Acacia'" oninput="classifyAndCalc()">
             <datalist id="assetList">
+                <option value="Moringa Oleifera">
                 <option value="Tropical Hardwood">
                 <option value="Mangrove">
                 <option value="Bamboo">
                 <option value="Regenerative Soil">
-                <option value="Acacia">
-                <option value="Seagrass">
             </datalist>
 
             <p style="font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; margin: 15px 0 0 0;">2. Detected Kingdom</p>
             <div id="kingdomDisplay" class="kingdom-display">Select an Asset</div>
 
-            <p style="font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; margin: 15px 0 0 0;">3. Measurement (Units)</p>
+            <p style="font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; margin: 15px 0 0 0;">3. Measurement (cm/ha)</p>
             <input type="number" id="inputVal" placeholder="Enter Value" oninput="classifyAndCalc()">
             
             <div class="result-area">
@@ -72,10 +47,8 @@
                 <span id="output" class="value">0.00</span>
                 <span style="font-size: 0.9rem; color: var(--leaf); font-weight: 600;">kg Sequestration</span>
             </div>
-            
             <button class="btn-log" onclick="logData()">Commit to Audit Trail</button>
         </div>
-
         <div id="history" class="history">
             <p style="color: var(--gold); font-weight: bold; border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 5px;">Field Audit Log</p>
         </div>
@@ -83,10 +56,10 @@
 
     <script>
         const kingdoms = {
-            forest: ["tree", "hardwood", "acacia", "mahogany", "forest", "teak"],
-            blue: ["mangrove", "seagrass", "marsh", "ocean", "blue"],
-            soil: ["soil", "dirt", "ground", "regenerative", "compost"],
-            grass: ["bamboo", "grass", "savanna"]
+            forest: ["tree", "hardwood", "acacia", "moringa", "mahogany", "forest", "teak", "oak", "shrub"],
+            blue: ["mangrove", "seagrass", "marsh", "ocean", "blue", "coastal"],
+            soil: ["soil", "dirt", "ground", "regenerative", "compost", "land"],
+            grass: ["bamboo", "grass", "savanna", "napier"]
         };
 
         function classifyAndCalc() {
@@ -96,10 +69,9 @@
             let kingdomName = "Unknown Kingdom";
             let multiplier = 1.5;
 
-            // 1. Kingdom Detection Logic
             if (kingdoms.forest.some(k => asset.includes(k))) {
                 kingdomName = "🌳 Terrestrial Forest";
-                multiplier = 3.66; // Placeholder for Allometric conversion
+                multiplier = 3.66;
             } else if (kingdoms.blue.some(k => asset.includes(k))) {
                 kingdomName = "🌊 Blue Carbon";
                 multiplier = 2.8;
@@ -113,9 +85,7 @@
 
             kDisplay.innerText = asset ? kingdomName : "Select an Asset";
 
-            // 2. Calculation
             if (val > 0) {
-                // Simplified formula for universal scaling
                 let res = (kingdomName.includes("Forest")) ? (0.11 * Math.pow(val, 2.62)) * 0.5 * 3.66 : val * multiplier;
                 document.getElementById('output').innerText = res.toFixed(2);
             } else {
