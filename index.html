@@ -11,12 +11,12 @@
         body { background: radial-gradient(circle at center, #065F46, var(--emerald)); color: var(--cream); font-family: 'Inter', sans-serif; margin: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
         .container { padding: 2rem; width: 90%; max-width: 450px; text-align: center; }
         h1 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 2.8rem; margin: 0; }
-        .slogan { font-size: 0.9rem; color: var(--leaf); letter-spacing: 1px; margin-top: 5px; font-weight: 600; }
-        .card { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(12px); border: 1.5px solid var(--gold); padding: 1.5rem; border-radius: 24px; margin-top: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
+        .slogan { font-size: 1rem; color: var(--leaf); letter-spacing: 0.5px; margin: 10px 0 20px 0; font-weight: 600; font-style: italic; }
+        .card { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(12px); border: 1.5px solid var(--gold); padding: 1.5rem; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
         input { width: 80%; padding: 12px; border-radius: 12px; border: 1px solid var(--gold); background: rgba(0,0,0,0.2); color: white; font-size: 1.1rem; margin-top: 10px; text-align: center; }
-        .btn-log { background: var(--gold); color: var(--emerald); border: none; padding: 12px 24px; border-radius: 12px; font-weight: bold; margin-top: 15px; cursor: pointer; width: 100%; }
+        .btn-log { background: var(--gold); color: var(--emerald); border: none; padding: 12px 24px; border-radius: 12px; font-weight: bold; margin-top: 15px; cursor: pointer; width: 100%; text-transform: uppercase; }
         .history { margin-top: 30px; text-align: left; width: 100%; }
-        .log-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; margin-bottom: 8px; font-size: 0.8rem; border-left: 3px solid var(--gold); }
+        .log-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 10px; font-size: 0.85rem; border-left: 4px solid var(--gold); }
     </style>
 </head>
 <body>
@@ -25,23 +25,25 @@
         <p class="slogan">Ancestral Wisdom, Digitally Scaled.</p>
         
         <div class="card">
-            <p style="font-size: 0.8rem; opacity: 0.7;">Tree Diameter (cm)</p>
+            <p style="font-size: 0.8rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px;">Tree Diameter (cm)</p>
             <input type="number" id="dbh" placeholder="0.0" oninput="calculate()">
-            <div style="margin-top: 15px;">
-                <span style="font-size: 0.7rem; text-transform: uppercase;">CO2e Sequestration</span>
-                <div id="output" style="font-size: 2.2rem; color: var(--gold); font-weight: 700;">0.00</div>
+            <div style="margin-top: 20px;">
+                <span style="font-size: 0.7rem; text-transform: uppercase; opacity: 0.7;">Carbon Sequestered</span>
+                <div id="output" style="font-size: 2.5rem; color: var(--gold); font-weight: 700;">0.00</div>
+                <span style="font-size: 0.8rem; color: var(--leaf);">kg CO2e</span>
             </div>
-            <button class="btn-log" onclick="logData()">Log Field Reading</button>
+            <button class="btn-log" onclick="logData()">Record Field Audit</button>
         </div>
 
         <div class="history" id="history">
-            <p style="color: var(--gold); font-weight: bold;">Field Records</p>
+            <p style="color: var(--gold); font-weight: bold; border-bottom: 1px solid rgba(212,175,55,0.3); padding-bottom: 5px;">Field Audit Trail</p>
         </div>
     </div>
 
     <script>
         function calculate() {
             const dbh = document.getElementById('dbh').value;
+            // Native Allometric Logic: Biomass * 0.5 * 3.66
             const res = (0.11 * Math.pow(dbh, 2.62)) * 0.5 * 3.66;
             document.getElementById('output').innerText = dbh > 0 ? res.toFixed(2) : "0.00";
         }
@@ -54,20 +56,15 @@
             navigator.geolocation.getCurrentPosition((pos) => {
                 const log = {
                     date: new Date().toLocaleTimeString(),
-                    coords: `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`,
+                    coords: `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`,
                     val: co2
                 };
-                saveToUI(log);
-            }, () => alert("GPS required for Audit Truth."));
+                const item = document.createElement('div');
+                item.className = 'log-item';
+                item.innerHTML = `<b>${data.date}</b> • GPS: ${data.coords}<br><b>${data.val} kg CO2e</b> Captured`;
+                document.getElementById('history').prepend(item);
+            }, () => alert("GPS Auth Required for Audit."));
         }
-
-        function saveToUI(data) {
-            const item = document.createElement('div');
-            item.className = 'log-item';
-            item.innerHTML = `<b>${data.date}</b> | ${data.coords}<br>Result: ${data.val} kg CO2e`;
-            document.getElementById('history').prepend(item);
-        }
-
         if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }
     </script>
 </body>
