@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AngaSafi | Biome Auditor</title>
+    <title>AngaSafi | Global Biome Auditor</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@300;600&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #D4AF37; --emerald: #064E3B; --leaf: #10B981; --cream: #F9FAFB; }
@@ -13,12 +13,11 @@
         .slogan { display: block; font-size: 0.9rem; color: var(--gold); margin: 5px 0 20px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
         .card { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(12px); border: 1.5px solid var(--gold); padding: 1.5rem; border-radius: 24px; box-shadow: 0 0 20px rgba(212,175,55,0.2); }
         input, .kingdom-display { width: 90%; padding: 12px; border-radius: 12px; border: 1px solid var(--gold); background: rgba(0,0,0,0.3); color: white; font-size: 1rem; margin-top: 10px; outline: none; }
-        .kingdom-display { background: rgba(212, 175, 55, 0.1); border-style: dashed; color: var(--gold); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; display: flex; align-items: center; justify-content: center; min-height: 40px; transition: 0.5s; }
+        .kingdom-display { background: rgba(212, 175, 55, 0.1); border-style: dashed; color: var(--gold); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; display: flex; align-items: center; justify-content: center; min-height: 40px; }
         .result-area { margin-top: 25px; padding: 20px; background: rgba(16, 185, 129, 0.1); border-radius: 15px; border: 2.5px solid var(--leaf); box-shadow: 0 0 20px var(--leaf), inset 0 0 10px var(--leaf); }
         .value { font-size: 2.5rem; color: var(--gold); font-weight: 700; display: block; }
         .btn-log { background: var(--gold); color: var(--emerald); border: none; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 20px; cursor: pointer; width: 100%; text-transform: uppercase; }
-        .history { margin-top: 40px; text-align: left; width: 100%; }
-        .log-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--gold); font-size: 0.85rem; }
+        .log-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--gold); font-size: 0.85rem; text-align: left; }
     </style>
 </head>
 <body>
@@ -26,66 +25,76 @@
         <h1>AngaSafi</h1>
         <div class="slogan">Ancestral Wisdom, Digitally Scaled.</div>
         <div class="card">
-            <p style="font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; margin:0;">1. Biological Search (Flora/Fauna)</p>
-            <input type="text" id="assetSearch" placeholder="Type Common or Scientific Name" oninput="resolveTaxon()">
+            <p style="font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; margin:0;">1. Species (English, Scientific, or Local)</p>
+            <input type="text" id="assetSearch" placeholder="e.g. Neem, Moringa, or Acacia" onchange="resolveGlobalTaxon()">
             
-            <p style="font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; margin: 15px 0 0 0;">2. Kingdom Resolver</p>
+            <p style="font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; margin: 15px 0 0 0;">2. Kingdom Resolver (Auto-Detected)</p>
             <div id="kingdomDisplay" class="kingdom-display">Awaiting Input...</div>
 
-            <p style="font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; margin: 15px 0 0 0;">3. Field Metric</p>
-            <input type="number" id="inputVal" placeholder="Enter measurement" oninput="resolveTaxon()">
+            <p style="font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; margin: 15px 0 0 0;">3. Field Metric (cm/ha)</p>
+            <input type="number" id="inputVal" placeholder="Enter measurement" oninput="calculate()">
             
             <div class="result-area">
-                <span id="labelResult" style="font-size: 0.7rem; text-transform: uppercase; opacity: 0.7;">Carbon Truth</span>
                 <span id="output" class="value">0.00</span>
-                <span id="unitResult" style="font-size: 0.9rem; color: var(--leaf); font-weight: 600;">kg CO2e</span>
+                <span style="font-size: 0.9rem; color: var(--leaf); font-weight: 600;">kg CO2e Sequestration</span>
             </div>
-            <button class="btn-log" onclick="logData()">Commit to Audit</button>
+            <button class="btn-log" onclick="logData()">Commit Field Audit</button>
         </div>
-        <div id="history" class="history"></div>
+        <div id="history" style="margin-top: 30px; width: 100%;"></div>
     </div>
 
     <script>
-        async function resolveTaxon() {
-            const query = document.getElementById('assetSearch').value;
-            const val = document.getElementById('inputVal').value;
+        let currentKingdom = "Unknown";
+
+        async function resolveGlobalTaxon() {
+            const name = document.getElementById('assetSearch').value;
             const kDisplay = document.getElementById('kingdomDisplay');
+            if (name.length < 3) return;
+
+            kDisplay.innerText = "Searching Global Data...";
+
+            try {
+                // Pings GBIF Species Match API for Multilingual & Scientific lookup
+                const response = await fetch(`https://api.gbif.org/v1/species/match?name=${encodeURIComponent(name)}`);
+                const data = await response.json();
+
+                if (data.kingdom) {
+                    currentKingdom = data.kingdom;
+                    const scientific = data.scientificName || "";
+                    kDisplay.innerHTML = `${data.kingdom === 'Plantae' ? '🌿' : '🦁'} ${data.kingdom} (${scientific})`;
+                    calculate();
+                } else {
+                    kDisplay.innerText = "Unknown Asset - Manual Override Enabled";
+                    currentKingdom = "Unknown";
+                }
+            } catch (err) {
+                kDisplay.innerText = "Offline Mode: Keyword Guessing...";
+                // Fallback to keyword matching if API fails
+            }
+        }
+
+        function calculate() {
+            const val = document.getElementById('inputVal').value;
             const output = document.getElementById('output');
             
-            if (query.length < 3) return;
-
-            // Step 1: Automated Inference Logic (Works Offline)
-            let kingdom = "Unknown";
-            let multiplier = 1.0;
-            const floraKeywords = ["tree", "leaf", "plant", "wood", "moringa", "acacia", "shrub", "mangrove", "grass", "bamboo"];
-            const faunaKeywords = ["elephant", "bird", "rhino", "insect", "animal", "fauna", "cat", "lion"];
-
-            if (floraKeywords.some(k => query.toLowerCase().includes(k))) {
-                kingdom = "🌿 Plantae (Flora)";
-                multiplier = 3.66;
-            } else if (faunaKeywords.some(k => query.toLowerCase().includes(k))) {
-                kingdom = "🦁 Animalia (Fauna)";
-                multiplier = 0; // Fauna is a biodiversity credit, not directly carbon-mass
-            }
-
-            kDisplay.innerText = kingdom;
-
-            // Step 2: Calculation (Scaling based on Kingdom)
             if (val > 0) {
-                let res = (kingdom.includes("Plantae")) ? (0.11 * Math.pow(val, 2.62)) * 0.5 * 3.66 : "Biodiversity Credit";
+                // If it's a plant/tree, use Allometric Math
+                let res = (currentKingdom === "Plantae" || currentKingdom === "Unknown") 
+                    ? (0.11 * Math.pow(val, 2.62)) * 0.5 * 3.66 
+                    : "Biodiversity Credit";
+                
                 output.innerText = (typeof res === 'number') ? res.toFixed(2) : res;
-                document.getElementById('unitResult').innerText = (typeof res === 'number') ? "kg CO2e" : "Unit";
             }
         }
 
         function logData() {
             const val = document.getElementById('output').innerText;
             const asset = document.getElementById('assetSearch').value;
-            const kingdom = document.getElementById('kingdomDisplay').innerText;
+            const k = document.getElementById('kingdomDisplay').innerText;
             navigator.geolocation.getCurrentPosition((pos) => {
                 const item = document.createElement('div');
                 item.className = 'log-item';
-                item.innerHTML = `<b>${asset}</b> (${kingdom})<br>Value: ${val} | GPS Verified`;
+                item.innerHTML = `<b>${asset}</b> (${k})<br>Value: ${val}<br><small>GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}</small>`;
                 document.getElementById('history').prepend(item);
             });
         }
