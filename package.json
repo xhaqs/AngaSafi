@@ -1,11 +1,20 @@
 {
-  "name": "angasafi",
-  "version": "1.0.0",
+  "name": "angasafi-backend",
+  "version": "2.0.0",
+  "description": "AngaSafi Sovereign dMRV Backend - Riakoine Empire",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
-  }
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["carbon", "dMRV", "climate", "africa", "riakoine"],
+  "author": "Phoenix (ZACK-KE) - Riakoine Empire",
+  "license": "Apache-2.0"
 }
